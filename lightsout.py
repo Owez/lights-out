@@ -113,20 +113,25 @@ async def invite(ctx):
         value="If you would like to contact my developer, they are <@223903236069785601>!",
     )
     embed.add_field(
-        name="Nothing happening?"
-        value="You need to allow me have administrator privlages or to be able to send messages to a channel named `#lights-out` or I can't do anything."
+        name="Nothing happening?",
+        value="You need to allow me have administrator privlages or to be able to send messages to a channel named `#lights-out` or I can't do anything.",
     )
     embed.color = 0xFFFFFF
 
     await ctx.send(embed=embed)
 
+
 @client.command(aliases=["servercount"])
 async def servers(ctx):
     """Server count"""
 
-    embed = discord.Embed(title="Server count", description=f"I am currently on {len(client.guilds)} servers!")
+    embed = discord.Embed(
+        title="Server count",
+        description=f"I am currently on {len(client.guilds)} servers!",
+    )
     embed.color = 0xFFFFFF
 
     await ctx.send(embed=embed)
+
 
 client.run(os.environ["TOKEN"])
