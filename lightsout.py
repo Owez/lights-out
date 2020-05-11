@@ -127,7 +127,7 @@ async def servers(ctx):
 
     embed = discord.Embed(
         title="Server count",
-        description=f"I am currently on {len(client.guilds)} servers!",
+        description=f"I am currently on {len(client.guilds)} servers with {len(client.get_all_members())} members!",
     )
     embed.color = 0xFFFFFF
 
