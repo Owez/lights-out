@@ -181,7 +181,7 @@ async def on_guild_join(guild):
 async def on_member_update(before, after):
     """Main outage checker"""
 
-    if not after.bot:
+    if not after.bot or after.id not in get_guild_bots(after.guild):
         return
 
     if before.status != after.status:
