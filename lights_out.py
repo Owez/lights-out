@@ -254,7 +254,7 @@ async def help(ctx):
     )
     embed.add_field(
         name=",report [info]",
-        value="Reports an issue directly my developer",
+        value="Reports an issue directly to my developer",
         inline=False,
     )
     embed.add_field(name=",help", value="Displays what you are reading", inline=False)
