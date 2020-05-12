@@ -216,14 +216,13 @@ async def help(ctx):
     )
     embed.add_field(name=",help", value="Displays what you are reading")
     embed.add_field(
-        name=",status",
-        value="Shows if LightsOut is setup properly or not on your server, used for diagnosing issues",
+        name=",troubleshoot",
+        value="Common issues relating to LightsOut and how to fix them",
         inline=False,
     )
     embed.add_field(
-        name=",troubleshoot",
-        value="Common issues relating to LightsOut, to be used in combination with `,status`",
-        inline=False,
+        name=",bots",
+        value="Shows whitelist/what bots are allowed (if no whitelist if active, all bots are allowed)",
     )
     embed.add_field(
         name=",add_bot [@bot]",
@@ -246,13 +245,6 @@ async def help(ctx):
     embed.color = 0xFFFFFF
 
     await ctx.send(embed=embed)
-
-
-@client.command()
-async def status(ctx):
-    """Status info regarding LightsOut on ctx.guild"""
-
-    pass  # TODO: simple prompt saying working or not
 
 
 @client.command(aliases=["rem", "remove", "blacklist"])
@@ -314,16 +306,40 @@ async def add_bot(ctx, user: discord.Member):
     await ctx.send(embed=embed)
 
 
-@client.command(aliases=["troubleshooting", "problems", "fix"])
+@client.command(aliases=["listbot", "botlist"])
+async def bots(ctx):
+    """Lists bots active on this server"""
+
+    whitelisted = get_guild_bots(ctx.guild)
+
+    if len(whitelisted) == 0:
+        embed = discord.Embed(
+            title="Whitelisted bots",
+            description="There is no whitelist in place and all bots are reported upon! You may add a bot to the whitelist with `,add_bot`.",
+        )
+    else:
+        embed = discord.Embed(
+            title="Whitelisted bots",
+            description="Below is a list of bots that are reported in `#lights-out`. If you would like to remove one, you can do do with the `,rem_bot` command.",
+        )
+
+        for ind, bot in enumerate(whitelisted):
+            embed.add_field(
+                name=f"Whitelisted bot #{ind + 1}",
+                value=f"<@{bot}> is whitelisted and together with other whitelisted bots will be the only ones reported",
+                inline=False,
+            )
+
+    embed.color = 0xFFFFFF
+
+    await ctx.send(embed=embed)
+
+
+@client.command(aliases=["troubleshooting", "problems", "fix", "status"])
 async def troubleshoot(ctx):
     """Troubleshooting tips"""
 
     embed = discord.Embed(title="Troubleshooting")
-    embed.add_field(
-        name="Quick diagnostic",
-        value="You can run `,status` and I will check that everything is in order!",
-        inline=False,
-    )
     embed.add_field(
         name="Permissions/roles",
         value="To be able to report outages, I need permissions to read user statuses and send messages to a channel called `#lights-out`. You can re-invite me with admin permissions to simplify this if needed!",
