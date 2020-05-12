@@ -40,7 +40,7 @@ def get_lightsout_channel(guild: discord.Guild):
             return channel
 
 
-def smart_guild_make(guild: discord.Guild) -> int:
+def smart_make_guild(guild: discord.Guild) -> int:
     """Adds guild into db if non existant or returns existing"""
 
     if not c.execute(f"SELECT {guild.id} FROM guild").fetchone():
@@ -49,6 +49,17 @@ def smart_guild_make(guild: discord.Guild) -> int:
         conn.commit()
 
     return guild.id
+
+
+def smart_make_bot(bot: discord.Member) -> int:
+    """Similar to [smart_make_guild], adds a bot to db"""
+
+    if not c.execute(f"SELECT id from bot where id={bot.id}").fetchone():
+        c.execute(f"INSERT INTO bot (id) VALUES ({bot.id})")
+
+        conn.commit()
+
+    return bot.id
 
 
 def get_guild_bots(guild: discord.Guild) -> list:
@@ -64,15 +75,15 @@ def add_bot_filter(guild: discord.Guild, bot: discord.Member) -> bool:
 
     in_db = False
 
-    guild_id = smart_guild_make(guild)
+    smart_make_guild(guild)  # ensure guild is there
+    smart_make_bot(bot)  # ensure bot is there
 
-    if not c.execute(f"SELECT id from bot where id={bot.id}").fetchone(): # TODO make dedicated function
-        c.execute(f"INSERT INTO bot (id) VALUES ({bot.id})")  # Add if not in already
-
-    if c.execute(f"SELECT bot_id from guild_bot where guild_id={guild.id}").fetchone():
+    if bot.id in get_guild_bots(guild):
         in_db = True
     else:
-        c.execute(f"INSERT INTO guild_bot (guild_id, bot_id) VALUES ({guild.id}, {bot.id})")
+        c.execute(
+            f"INSERT INTO guild_bot (guild_id, bot_id) VALUES ({guild.id}, {bot.id})"
+        )
 
     conn.commit()
 
@@ -80,16 +91,18 @@ def add_bot_filter(guild: discord.Guild, bot: discord.Member) -> bool:
 
 
 def rem_bot_filter(guild: discord.Guild, bot: discord.Member):
-    """Removes bot from whitelist or raises a general [Exception] if it wasn't part of it to begin with"""
+    """Removes bot from whitelist or raises a general [Exception] if it wasn't
+    part of it to begin with and returns if user was never in whitelist"""
 
-    guild_id = smart_guild_make(guild)
+    guild_id = smart_make_guild(guild)
 
-    if not c.execute(
-        f"SELECT bot_id FROM guild_bot WHERE guild_id={guild.id}"
-    ).fetchone():
-        raise Exception("Bot isn't in guild's whitelist!")
+    if bot.id not in get_guild_bots(guild):
+        return False
 
-    pass  # TODO remove
+    c.execute(f"DELETE FROM guild_bot WHERE bot_id={bot.id} AND guild_id={guild.id}")
+    conn.commit()
+
+    return True
 
 
 def join_embed():
@@ -247,15 +260,13 @@ async def rem_bot(ctx, user: discord.Member):
     """Removes a bot from the whitelist/filter"""
 
     if user.bot:
-        try:
-            rem_bot_filter(ctx.guild, user)
-
+        if rem_bot_filter(ctx.guild, user):
             embed = discord.Embed(
                 title="Removed bot from whitelist",
                 description=f"<@{user.id}> was removed from the LightsOut whitelist. If you wish to re-add this bot, you may do so using `,add_bot`.",
             )
             embed.color = 0x00FF00
-        except:
+        else:
             embed = discord.Embed(
                 title="Bot not in whitelist!",
                 description="This bot is not a part of the whitelist and therefore cannot be removed from it! If you are having problems, you may find `,troubleshoot` useful!",
