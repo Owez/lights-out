@@ -11,10 +11,3 @@ CREATE TABLE IF NOT EXISTS guild_bot(
     FOREIGN KEY(bot_id) REFERENCES bot(id) ON DELETE CASCADE,
     FOREIGN KEY(guild_id) REFERENCES guild(id) ON DELETE CASCADE
 );
-
--- A table of reports given from users (named `author`)
-CREATE TABLE IF NOT EXISTS report (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    content TEXT NOT NULL,
-    author INTEGER NOT NULL
-);

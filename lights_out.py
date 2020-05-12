@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import datetime
 import discord
 from discord.ext import commands
 
@@ -8,6 +9,9 @@ CHANNEL_NAME = "lights-out"
 
 """Path to database (ususally `./lightsout.db`)"""
 DB_PATH = "lights_out.db"
+
+"""ID of channel to send reports to"""
+REPORT_CHANNEL_ID = 709893017196167238
 
 
 client = commands.Bot(command_prefix=",")
@@ -214,17 +218,14 @@ async def help(ctx):
     """Help infomation regarding commands"""
 
     embed = discord.Embed(
-        title="Command help", description="Useful commands to help you use LightsOut"
-    )
-    embed.add_field(name=",help", value="Displays what you are reading")
-    embed.add_field(
-        name=",troubleshoot",
-        value="Common issues relating to LightsOut and how to fix them",
+        title="Command help",
+        description="Useful commands to help you use LightsOut",
         inline=False,
     )
     embed.add_field(
         name=",bots",
         value="Shows whitelist/what bots are allowed (if no whitelist if active, all bots are allowed)",
+        inline=False,
     )
     embed.add_field(
         name=",add_bot [@bot]",
@@ -232,7 +233,9 @@ async def help(ctx):
         inline=False,
     )
     embed.add_field(
-        name=",rem_bot [@bot]", value="Removed bot from whitelist if it was added"
+        name=",rem_bot [@bot]",
+        value="Removed bot from whitelist if it was added",
+        inline=False,
     )
     embed.add_field(
         name=",about",
@@ -244,6 +247,17 @@ async def help(ctx):
         value="Shows statistics on what servers LightsOut is in",
         inline=False,
     )
+    embed.add_field(
+        name=",troubleshoot",
+        value="Common issues relating to LightsOut and how to fix them",
+        inline=False,
+    )
+    embed.add_field(
+        name=",report [info]",
+        value="Reports an issue directly my developer",
+        inline=False,
+    )
+    embed.add_field(name=",help", value="Displays what you are reading", inline=False)
     embed.color = 0xFFFFFF
 
     await ctx.send(embed=embed)
@@ -337,11 +351,45 @@ async def bots(ctx):
     await ctx.send(embed=embed)
 
 
-@client.command(aliases=["troubleshooting", "problems", "fix", "status"])
+@client.command(aliases=["problem"])
+async def report(ctx, *, info: str):
+    """Reports problem"""
+
+    sent_embed = discord.Embed(
+        title="Sending report",
+        description="Thank you for reporting this issue, here is a preview of the report sent to the developer (see `,about`):",
+    )
+    sent_embed.color = 0xFFFFFF
+
+    await ctx.send(embed=sent_embed)
+
+    report_embed = discord.Embed(title="New report")
+    report_embed.add_field(name="Info", value=info, inline=False)
+    report_embed.add_field(
+        name="Sent by",
+        value=f"This report was sent by <@{ctx.author.id}>",
+        inline=False,
+    )
+    report_embed.add_field(
+        name="Submitted date",
+        value=f"This report was submitted at {datetime.datetime.utcnow()}",
+    )
+    report_embed.color = 0x000000
+
+    channel = client.get_channel(REPORT_CHANNEL_ID)
+
+    await ctx.send(embed=report_embed)
+    await channel.send(embed=report_embed)
+
+
+@client.command(aliases=["troubleshooting", "fix", "status"])
 async def troubleshoot(ctx):
     """Troubleshooting tips"""
 
-    embed = discord.Embed(title="Troubleshooting")
+    embed = discord.Embed(
+        title="Troubleshooting",
+        description="Some common issues faced when first setting up LightsOut and how to fix them",
+    )
     embed.add_field(
         name="Permissions/roles",
         value="To be able to report outages, I need permissions to read user statuses and send messages to a channel called `#lights-out`. You can re-invite me with admin permissions to simplify this if needed!",
@@ -349,7 +397,12 @@ async def troubleshoot(ctx):
     )
     embed.add_field(
         name="Status shows its working but nothing is being reported?",
-        value="You may have accidently used `,add_bot` on the wrong bot, you can remedy this by using `,rem_bot` (as seen in the `,help` command).",
+        value="You may have accidently used `,add_bot` on the wrong bot, you can remedy this by using `,rem_bot`.",
+        inline=False,
+    )
+    embed.add_field(
+        name="Think it's a bug?",
+        value="You can report bugs directly to my developer with the `,report` command!",
         inline=False,
     )
     embed.color = 0xFFFFFF
