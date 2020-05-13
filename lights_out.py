@@ -141,17 +141,21 @@ def join_embed():
 async def server_setup(guild):
     """Sets a server up"""
 
-    print(
-        f"Added to guild '{guild.name}', ID: {guild.id}, Members: {len(guild.members)}"
-    )
-
     smart_make_guild(
         guild
     )  # faster for future quick updates, always ran once for each server
 
-    await guild.create_text_channel("lights-out")
-    channel = get_lightsout_channel(guild)
-    await channel.send(embed=join_embed())
+    try:
+        await guild.create_text_channel("lights-out")
+        channel = get_lightsout_channel(guild)
+        await channel.send(embed=join_embed())
+        print(
+            f"Added to guild '{guild.name}', ID: {guild.id}, Members: {len(guild.members)}"
+        )
+    except:
+        print(
+            f"Missing permissions for guild '{guild.name}', ID: {guild.id}, Members: {len(guild.members)}"
+        )
 
 
 @client.event
