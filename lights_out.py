@@ -180,9 +180,14 @@ def rem_editor_filter(guild: discord.Guild, role: discord.Role):
 def is_author_authorised(guild: discord.Guild, author: discord.User) -> bool:
     """Checks if message author is in an editor role"""
 
+    editors = get_guild_editors(guild)
+
+    if len(editors) == 0:
+        return True
+
     user_roleids = [i.id for i in author.roles]
 
-    for editor in get_guild_editors(guild):
+    for editor in editors:
         if editor in user_roleids:
             return True
 
