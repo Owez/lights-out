@@ -44,6 +44,17 @@ def get_lightsout_channel(guild: discord.Guild):
             return channel
 
 
+async def set_discordrp():
+    """Sets a uniform status, can also be used to update said status"""
+
+    await client.change_presence(
+        activity=discord.Activity(
+            type=discord.ActivityType.watching,
+            name=f"{len(client.guilds)} servers. Do ,help",
+        )
+    )
+
+
 def smart_make_guild(guild: discord.Guild) -> int:
     """Adds guild into db if non existant or returns existing"""
 
@@ -233,12 +244,7 @@ async def on_ready():
 
     print("LightsOut Bot online!")
 
-    await client.change_presence(
-        activity=discord.Activity(
-            type=discord.ActivityType.watching,
-            name=f"{len(client.guilds)} servers. Do ,help",
-        )
-    )
+    await set_discordrp()
 
     for guild in client.guilds:
         if not get_lightsout_channel(guild):
@@ -247,7 +253,9 @@ async def on_ready():
 
 @client.event
 async def on_guild_join(guild):
-    """Setup channels"""
+    """Setup channels and set discord rp"""
+
+    await set_discordrp()
 
     channel = get_lightsout_channel(guild)
 
@@ -261,6 +269,13 @@ async def on_guild_join(guild):
         await channel.send(embed=embed)
     else:
         await server_setup(guild)
+
+
+@client.event
+async def on_guild_leave(guild):
+    """Set discord rp"""
+
+    set_discordrp()
 
 
 @client.event
