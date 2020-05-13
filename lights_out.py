@@ -541,7 +541,7 @@ async def editors(ctx):
         for ind, editor in enumerate(got_editors):
             embed.add_field(
                 name=f"Editor #{ind + 1}",
-                value=f"<@&{editor}> has permissions to edit the bot whitlist",
+                value=f"<@&{editor}> has permissions to edit the bot whitelist",
                 inline=False,
             )
 
