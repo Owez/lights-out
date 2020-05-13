@@ -66,6 +66,18 @@ def smart_make_bot(bot: discord.Member) -> int:
     return bot.id
 
 
+def smart_make_editor(role: discord.Role) -> int:
+    """Gets an existing editor from db or adds it then returns, ensuring editors
+    are always there and doing that with fast speeds"""
+
+    if not c.execute(f"SELECT id from editor where id={role.id}").fetchone():
+        c.execute(f"INSERT INTO editor (id) VALUES ({role.id})")
+
+        conn.commit()
+
+    return role.id
+
+
 def get_guild_bots(guild: discord.Guild) -> list:
     """Pulls all bot ids from db for guild, will return list of int bot ids"""
 
@@ -74,8 +86,16 @@ def get_guild_bots(guild: discord.Guild) -> list:
     return [i[0] for i in c.execute(query).fetchall()]
 
 
+def get_guild_editors(guild: discord.Guild) -> list:
+    """Pulls all editor ids from db for guild, will return list of int editor ids"""
+
+    query = f"SELECT editor_id FROM guild_editor WHERE guild_id = {guild.id}"
+
+    return [i[0] for i in c.execute(query).fetchall()]
+
+
 def add_bot_filter(guild: discord.Guild, bot: discord.Member) -> bool:
-    """Adds all discord.Member bots in list to db and returns if bot was already in db"""
+    """Adds the discord.Member bot to db and returns if bot was already in db"""
 
     in_db = False
 
@@ -94,9 +114,29 @@ def add_bot_filter(guild: discord.Guild, bot: discord.Member) -> bool:
     return in_db
 
 
-def rem_bot_filter(guild: discord.Guild, bot: discord.Member):
-    """Removes bot from whitelist or raises a general [Exception] if it wasn't
-    part of it to begin with and returns if user was never in whitelist"""
+def add_editor_filter(guild: discord.Guild, role: discord.Role) -> bool:
+    """Attempts to add given role into database or returns true if it was already there"""
+
+    in_db = False
+
+    smart_make_guild(guild)  # ensure guild is there
+    smart_make_editor(bot)  # ensure editor is there
+
+    if role.id in get_guild_editors(guild):
+        in_db = True
+    else:
+        c.execute(
+            f"INSERT INTO guild_editor (guild_id, editor_id) VALUES ({guild.id}, {role.id})"
+        )
+
+    conn.commit()
+
+    return in_db
+
+
+def rem_bot_filter(guild: discord.Guild, bot: discord.Member) -> bool:
+    """Removes bot from whitelist and returns False if it was never there in the
+    first place"""
 
     guild_id = smart_make_guild(guild)
 
@@ -104,6 +144,23 @@ def rem_bot_filter(guild: discord.Guild, bot: discord.Member):
         return False
 
     c.execute(f"DELETE FROM guild_bot WHERE bot_id={bot.id} AND guild_id={guild.id}")
+    conn.commit()
+
+    return True
+
+
+def rem_editor_filter(guild: discord.Guild, role: discord.Role):
+    """Removes role from allowed editors and returns False if it was never there
+    in the first place"""
+
+    guild_id = smart_make_guild(guild)
+
+    if role.id not in get_guild_editors(guild):
+        return False
+
+    c.execute(
+        f"DELETE FROM guild_editor WHERE editor_id={role.id} AND guild_id={guild.id}"
+    )
     conn.commit()
 
     return True
@@ -248,6 +305,21 @@ async def help(ctx):
     embed.add_field(
         name=",rem_bot [@bot]",
         value="Removed bot from whitelist if it was added",
+        inline=False,
+    )
+    embed.add_field(
+        name=",roles",
+        value="Shows whitelisted roles that can edit my usage, by default anyone can",
+        inline=False,
+    )
+    embed.add_field(
+        name=",add_role [@role]",
+        value="Adds a role that is allowed to edit my usage",
+        inline=False,
+    )
+    embed.add_field(
+        name=",rem_role [@role]",
+        value="Removes a role that is allowed to edit my usage",
         inline=False,
     )
     embed.add_field(
