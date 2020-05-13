@@ -145,7 +145,9 @@ async def server_setup(guild):
         f"Added to guild '{guild.name}', ID: {guild.id}, Members: {len(guild.members)}"
     )
 
-    smart_make_guild()  # faster for future quick updates, always ran once for each server
+    smart_make_guild(
+        guild
+    )  # faster for future quick updates, always ran once for each server
 
     await guild.create_text_channel("lights-out")
     channel = get_lightsout_channel(guild)
@@ -157,6 +159,13 @@ async def on_ready():
     """Startup"""
 
     print("LightsOut Bot online!")
+
+    await client.change_presence(
+        activity=discord.Activity(
+            type=discord.ActivityType.watching,
+            name=f"{len(client.guilds)} servers. Do ,help",
+        )
+    )
 
     for guild in client.guilds:
         if not get_lightsout_channel(guild):
