@@ -120,7 +120,7 @@ def add_editor_filter(guild: discord.Guild, role: discord.Role) -> bool:
     in_db = False
 
     smart_make_guild(guild)  # ensure guild is there
-    smart_make_editor(bot)  # ensure editor is there
+    smart_make_editor(role)  # ensure editor is there
 
     if role.id in get_guild_editors(guild):
         in_db = True
@@ -164,6 +164,18 @@ def rem_editor_filter(guild: discord.Guild, role: discord.Role):
     conn.commit()
 
     return True
+
+
+def is_author_authorised(guild: discord.Guild, author: discord.User) -> bool:
+    """Checks if message author is in an editor role"""
+
+    user_roleids = [i.id for i in author.roles]
+
+    for editor in get_guild_editors(guild):
+        if editor in user_roleids:
+            return True
+
+    return False
 
 
 def join_embed():
@@ -264,7 +276,7 @@ async def on_member_update(before, after):
         if got_status == "online":
             embed = discord.Embed(
                 title=f"**{after.name}** is now online!",
-                description=f"The bot <@{after.id}> has just became online, you can now use it.",
+                description=f"The bot {after.mention} has just became online, you can now use it.",
                 inline=False,
             )
             embed.color = 0x00FF00
@@ -274,7 +286,7 @@ async def on_member_update(before, after):
         elif got_status == "offline":
             embed = discord.Embed(
                 title=f"**{after.name}** just disconnected!",
-                description=f"The bot <@{after.id}> is no longer online and will not pick up and commands sent!",
+                description=f"The bot {after.mention} is no longer online and will not pick up and commands sent!",
                 inline=False,
             )
             embed.color = 0xFF0000
@@ -308,18 +320,18 @@ async def help(ctx):
         inline=False,
     )
     embed.add_field(
-        name=",roles",
-        value="Shows whitelisted roles that can edit my usage, by default anyone can",
+        name=",editors",
+        value="Shows editors that can edit my usage, by default anyone can",
         inline=False,
     )
     embed.add_field(
-        name=",add_role [@role]",
-        value="Adds a role that is allowed to edit my usage",
+        name=",add_editor [@role]",
+        value="Adds a editor that is allowed to edit my usage",
         inline=False,
     )
     embed.add_field(
-        name=",rem_role [@role]",
-        value="Removes a role that is allowed to edit my usage",
+        name=",rem_editor [@role]",
+        value="Removes a editor that is allowed to edit my usage",
         inline=False,
     )
     embed.add_field(
@@ -352,11 +364,17 @@ async def help(ctx):
 async def rem_bot(ctx, user: discord.Member):
     """Removes a bot from the whitelist/filter"""
 
-    if user.bot:
+    if not is_author_authorised(ctx.guild, ctx.author):
+        embed = discord.Embed(
+            title="Unauthorised",
+            description="You are not permitted to remove bots from the whitelist as you are not an editor! You can view all editors with `,editors`.",
+        )
+        embed.color = 0xFF0000
+    elif user.bot:
         if rem_bot_filter(ctx.guild, user):
             embed = discord.Embed(
                 title="Removed bot from whitelist",
-                description=f"<@{user.id}> was removed from the LightsOut whitelist. If you wish to re-add this bot, you may do so using `,add_bot`.",
+                description=f"{user.mention} was removed from the LightsOut whitelist. If you wish to re-add this bot, you may do so using `,add_bot`.",
             )
             embed.color = 0x00FF00
         else:
@@ -368,7 +386,7 @@ async def rem_bot(ctx, user: discord.Member):
     else:
         embed = discord.Embed(
             title="Given user is not a bot!",
-            description=f"<@{user.id}> is not a bot and cannot be removed from the whitelist!",
+            description=f"{user.mention} is not a bot and cannot be removed from the whitelist!",
         )
         embed.color = 0xFF0000
 
@@ -379,17 +397,23 @@ async def rem_bot(ctx, user: discord.Member):
 async def add_bot(ctx, user: discord.Member):
     """Filters for specific bots"""
 
-    if user.bot:
+    if not is_author_authorised(ctx.guild, ctx.author):
+        embed = discord.Embed(
+            title="Unauthorised",
+            description="You are not permitted to add bots to the whitelist as you are not an editor! You can view all editors with `,editors`.",
+        )
+        embed.color = 0xFF0000
+    elif user.bot:
         if add_bot_filter(ctx.guild, user):
             embed = discord.Embed(
                 title="Bot already in whitelist",
-                description=f"<@{user.id}> is already in the whitelist, no need to change anything!",
+                description=f"{user.mention} is already in the whitelist, no need to change anything!",
             )
             embed.color = 0x00FF00
         else:
             embed = discord.Embed(
                 title="Added bot to whitelist",
-                description=f"<@{user.id}> has been added to the whitelist. Only whitelisted bots will be reported in `#lights-out`.",
+                description=f"{user.mention} has been added to the whitelist. Only whitelisted bots will be reported in `#lights-out`.",
             )
             embed.add_field(
                 name="Removing bots",
@@ -400,7 +424,47 @@ async def add_bot(ctx, user: discord.Member):
     else:
         embed = discord.Embed(
             title="Given user is not a bot!",
-            description=f"<@{user.id}> is not a bot and cannot be added to the LightsOut filter!",
+            description=f"{user.mention} is not a bot and cannot be added to the LightsOut filter!",
+        )
+        embed.color = 0xFF0000
+
+    await ctx.send(embed=embed)
+
+
+@client.command(aliases=["add_role"])
+async def add_editor(ctx, *, role: discord.Role):
+    """Adds an editor"""
+
+    if add_editor_filter(ctx.guild, role):
+        embed = discord.Embed(
+            title="Role is already an editor!",
+            description=f"{role.mention} is already an editor, no need to change anything!",
+        )
+    else:
+        embed = discord.Embed(
+            title="Added role as editor!",
+            description=f"{role.mention} is now an editor and can modify the bot whitelist!",
+        )
+
+    embed.color = 0x00FF00
+
+    await ctx.send(embed=embed)
+
+
+@client.command(aliases=["rem_role"])
+async def rem_editor(ctx, *, role: discord.Role):
+    """Removes an editor"""
+
+    if rem_editor_filter(ctx.guild, role):
+        embed = discord.Embed(
+            title="Removed editor successfully",
+            description=f"{role.mention} was removed from being an editor and can no longer modify bot whitelists!",
+        )
+        embed.color = 0x000FF00
+    else:
+        embed = discord.Embed(
+            title="Role is not an editor!",
+            description=f"{role.mention} is not an editor and so cannot be removed as an editor! If you are having problems, `,troubleshoot` might help",
         )
         embed.color = 0xFF0000
 
@@ -436,6 +500,36 @@ async def bots(ctx):
     await ctx.send(embed=embed)
 
 
+@client.command(aliases=["roles"])
+async def editors(ctx):
+    """Shows list of allowed editors or tells that all are allowed if no role is
+    defined"""
+
+    got_editors = get_guild_editors(ctx.guild)
+
+    if len(got_editors) == 0:
+        embed = discord.Embed(
+            title="Editors",
+            description="There are currently no explicit allowed editors defined so all users are allowed to add or remove bots from the whitelist! You can change this by using `,add_editor` to add a role.",
+        )
+    else:
+        embed = discord.Embed(
+            title="Editors",
+            description="Below are the editors that are allowed to edit the bot whitelist! If you are experiancing trouble setting LightsOut up, you may find `,troubleshoot` useful.",
+        )
+
+        for ind, editor in enumerate(got_editors):
+            embed.add_field(
+                name=f"Editor #{ind + 1}",
+                value=f"<@&{editor}> has permissions to edit the bot whitlist",
+                inline=False,
+            )
+
+    embed.color = 0xEFEA9A
+
+    await ctx.send(embed=embed)
+
+
 @client.command(aliases=["problem"])
 async def report(ctx, *, info: str):
     """Reports problem"""
@@ -452,7 +546,7 @@ async def report(ctx, *, info: str):
     report_embed.add_field(name="Info", value=info, inline=False)
     report_embed.add_field(
         name="Sent by",
-        value=f"This report was sent by <@{ctx.author.id}>",
+        value=f"This report was sent by {ctx.author.mention}",
         inline=False,
     )
     report_embed.add_field(
@@ -483,6 +577,11 @@ async def troubleshoot(ctx):
     embed.add_field(
         name="Status shows its working but nothing is being reported?",
         value="You may have accidently used `,add_bot` on the wrong bot, you can remedy this by using `,rem_bot`.",
+        inline=False,
+    )
+    embed.add_field(
+        name="People adding/removing from the whitelist without your permission?",
+        value="You can set specific roles to edit the whitelist, called 'editors'. You can add one with `,add_editor` and see the current editors with `,editors`.",
         inline=False,
     )
     embed.add_field(
