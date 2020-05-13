@@ -1,3 +1,6 @@
+-- DO NOT DELETE, THIS IS THE SQLITE STARTUP SCRIPT
+-- Please keep each expression with an empty space between them (`\n\n`)
+
 -- A bot in a guild, important for whitelisting. ID is discord bot id
 CREATE TABLE IF NOT EXISTS bot(id INTEGER PRIMARY KEY NOT NULL);
 

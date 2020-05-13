@@ -24,7 +24,7 @@ c = conn.cursor()
 def setup_sqlite_tables() -> str:
     """Gets sql initialsation stuff"""
 
-    with open("init.sql", "r") as file:
+    with open("scripts/init.sql", "r") as file:
         sql_split = file.read().split("\n\n")
 
         for sql in sql_split:
@@ -40,7 +40,7 @@ def get_lightsout_channel(guild: discord.Guild):
     """Finds the lights-out channel"""
 
     for channel in guild.channels:
-        if channel.name == "lights-out":
+        if channel.name == CHANNEL_NAME:
             return channel
 
 
@@ -133,7 +133,7 @@ def join_embed():
         value="To see avalible commands, you may run `,help` or if you would like to contact my developer or see some further bot infomation, you can do so by using the `,about` command!",
         inline=False,
     )
-    embed.color = 0xFFFFFF
+    embed.color = 0xEFEA9A
 
     return embed
 
@@ -174,7 +174,7 @@ async def on_guild_join(guild):
             title="Reinvited!",
             description="Please ensure I can still send messages to this channel after any future modifications and that I can also read all member statuses! If you need any help with setup again, you may use `,troubleshoot`",
         )
-        embed.color = 0xFFFFFF
+        embed.color = 0xEFEA9A
 
         await channel.send(embed=embed)
     else:
@@ -258,7 +258,7 @@ async def help(ctx):
         inline=False,
     )
     embed.add_field(name=",help", value="Displays what you are reading", inline=False)
-    embed.color = 0xFFFFFF
+    embed.color = 0xEFEA9A
 
     await ctx.send(embed=embed)
 
@@ -346,7 +346,7 @@ async def bots(ctx):
                 inline=False,
             )
 
-    embed.color = 0xFFFFFF
+    embed.color = 0xEFEA9A
 
     await ctx.send(embed=embed)
 
@@ -359,7 +359,7 @@ async def report(ctx, *, info: str):
         title="Sending report",
         description="Thank you for reporting this issue, here is a preview of the report sent to the developer (see `,about`):",
     )
-    sent_embed.color = 0xFFFFFF
+    sent_embed.color = 0xEFEA9A
 
     await ctx.send(embed=sent_embed)
 
@@ -405,7 +405,7 @@ async def troubleshoot(ctx):
         value="You can report bugs directly to my developer with the `,report` command!",
         inline=False,
     )
-    embed.color = 0xFFFFFF
+    embed.color = 0xEFEA9A
 
     await ctx.send(embed=embed)
 
@@ -430,7 +430,7 @@ async def about(ctx):
         value="You can view troubleshooting infomation with `,troubleshoot` or find a list of commands with `,help`.",
         inline=False,
     )
-    embed.color = 0xFFFFFF
+    embed.color = 0xEFEA9A
 
     await ctx.send(embed=embed)
 
@@ -444,7 +444,7 @@ async def servers(ctx):
         description=f"I am currently on {len(client.guilds)} servers with {len(list(client.get_all_members()))} members!",
         inline=False,
     )
-    embed.color = 0xFFFFFF
+    embed.color = 0xEFEA9A
 
     await ctx.send(embed=embed)
 
