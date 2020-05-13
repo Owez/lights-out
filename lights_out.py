@@ -325,32 +325,32 @@ async def help(ctx):
         inline=False,
     )
     embed.add_field(
-        name=",bots",
+        name=",bots / ,b",
         value="Shows whitelist/what bots are allowed (if no whitelist if active, all bots are allowed)",
         inline=False,
     )
     embed.add_field(
-        name=",add_bot [@bot]",
+        name=",add_bot [@bot] / ,ab [@bot]",
         value="Adds bot to whitelist so only it and other added bots will be reported upon",
         inline=False,
     )
     embed.add_field(
-        name=",rem_bot [@bot]",
+        name=",rem_bot [@bot] / ,rb [@bot]",
         value="Removed bot from whitelist if it was added",
         inline=False,
     )
     embed.add_field(
-        name=",editors",
+        name=",editors / ,e",
         value="Shows editors that can edit my usage, by default anyone can",
         inline=False,
     )
     embed.add_field(
-        name=",add_editor [@role]",
+        name=",add_editor [@role] / ,ae [@role]",
         value="Adds a editor that is allowed to edit my usage",
         inline=False,
     )
     embed.add_field(
-        name=",rem_editor [@role]",
+        name=",rem_editor [@role] / ,re [@role]",
         value="Removes a editor that is allowed to edit my usage",
         inline=False,
     )
@@ -380,7 +380,7 @@ async def help(ctx):
     await ctx.send(embed=embed)
 
 
-@client.command(aliases=["rem", "remove", "blacklist"])
+@client.command(aliases=["rb"])
 async def rem_bot(ctx, user: discord.Member):
     """Removes a bot from the whitelist/filter"""
 
@@ -413,7 +413,7 @@ async def rem_bot(ctx, user: discord.Member):
     await ctx.send(embed=embed)
 
 
-@client.command(aliases=["bot", "whitelist", "add"])
+@client.command(aliases=["ab"])
 async def add_bot(ctx, user: discord.Member):
     """Filters for specific bots"""
 
@@ -451,7 +451,7 @@ async def add_bot(ctx, user: discord.Member):
     await ctx.send(embed=embed)
 
 
-@client.command(aliases=["add_role"])
+@client.command(aliases=["ae"])
 async def add_editor(ctx, *, role: discord.Role):
     """Adds an editor"""
 
@@ -471,7 +471,7 @@ async def add_editor(ctx, *, role: discord.Role):
     await ctx.send(embed=embed)
 
 
-@client.command(aliases=["rem_role"])
+@client.command(aliases=["re"])
 async def rem_editor(ctx, *, role: discord.Role):
     """Removes an editor"""
 
@@ -491,7 +491,7 @@ async def rem_editor(ctx, *, role: discord.Role):
     await ctx.send(embed=embed)
 
 
-@client.command(aliases=["listbot", "botlist"])
+@client.command(aliases=["b"])
 async def bots(ctx):
     """Lists bots active on this server"""
 
@@ -520,7 +520,7 @@ async def bots(ctx):
     await ctx.send(embed=embed)
 
 
-@client.command(aliases=["roles"])
+@client.command(aliases=["e"])
 async def editors(ctx):
     """Shows list of allowed editors or tells that all are allowed if no role is
     defined"""
@@ -535,7 +535,7 @@ async def editors(ctx):
     else:
         embed = discord.Embed(
             title="Editors",
-            description="Below are the editors that are allowed to edit the bot whitelist! If you are experiancing trouble setting LightsOut up, you may find `,troubleshoot` useful.",
+            description="Below are the editors that are allowed to edit the bot whitelist! If you are experiencing trouble setting LightsOut up, you may find `,troubleshoot` useful.",
         )
 
         for ind, editor in enumerate(got_editors):
