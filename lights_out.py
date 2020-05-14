@@ -182,7 +182,7 @@ def is_author_authorised(guild: discord.Guild, author: discord.User) -> bool:
 
     editors = get_guild_editors(guild)
 
-    if len(editors) == 0:
+    if author == server.owner:
         return True
 
     user_roleids = [i.id for i in author.roles]
@@ -315,7 +315,7 @@ async def on_member_update(before, after):
             await channel.send(embed=embed)
 
 
-@client.command()
+@client.command(aliases=["h"])
 async def help(ctx):
     """Help infomation regarding commands"""
 
@@ -355,26 +355,28 @@ async def help(ctx):
         inline=False,
     )
     embed.add_field(
-        name=",about",
+        name=",about / ,a",
         value="Invite and contact infomation along with a prompt of where to find troubleshooting info",
         inline=False,
     )
     embed.add_field(
-        name=",servers",
+        name=",servers / ,s",
         value="Shows statistics on what servers LightsOut is in",
         inline=False,
     )
     embed.add_field(
-        name=",troubleshoot",
+        name=",troubleshoot / ,t",
         value="Common issues relating to LightsOut and how to fix them",
         inline=False,
     )
     embed.add_field(
-        name=",report [info]",
+        name=",report [info] / ,r [info]",
         value="Reports an issue directly to my developer",
         inline=False,
     )
-    embed.add_field(name=",help", value="Displays what you are reading", inline=False)
+    embed.add_field(
+        name=",help / h", value="Displays what you are reading", inline=False
+    )
     embed.color = 0xEFEA9A
 
     await ctx.send(embed=embed)
@@ -455,18 +457,24 @@ async def add_bot(ctx, user: discord.Member):
 async def add_editor(ctx, *, role: discord.Role):
     """Adds an editor"""
 
-    if add_editor_filter(ctx.guild, role):
+    if not is_author_authorised(ctx.guild, ctx.author):
+        embed = discord.Embed(
+            title="Missing permissions",
+            description="You are not an existing editor or a server owner so you cannot modify the editor list!",
+        )
+        embed.color = 0xFF0000
+    elif add_editor_filter(ctx.guild, role):
         embed = discord.Embed(
             title="Role is already an editor!",
             description=f"{role.mention} is already an editor, no need to change anything!",
         )
+        embed.color = 0x00FF00
     else:
         embed = discord.Embed(
             title="Added role as editor!",
             description=f"{role.mention} is now an editor and can modify the bot whitelist!",
         )
-
-    embed.color = 0x00FF00
+        embed.color = 0x00FF00
 
     await ctx.send(embed=embed)
 
@@ -475,7 +483,13 @@ async def add_editor(ctx, *, role: discord.Role):
 async def rem_editor(ctx, *, role: discord.Role):
     """Removes an editor"""
 
-    if rem_editor_filter(ctx.guild, role):
+    if not is_author_authorised(ctx.guild, ctx.author):
+        embed = discord.Embed(
+            title="Missing permissions",
+            description="You are not an existing editor or a server owner so you cannot modify the editor list!",
+        )
+        embed.color = 0xFF0000
+    elif rem_editor_filter(ctx.guild, role):
         embed = discord.Embed(
             title="Removed editor successfully",
             description=f"{role.mention} was removed from being an editor and can no longer modify bot whitelists!",
@@ -530,7 +544,7 @@ async def editors(ctx):
     if len(got_editors) == 0:
         embed = discord.Embed(
             title="Editors",
-            description="There are currently no explicit allowed editors defined so all users are allowed to add or remove bots from the whitelist! You can change this by using `,add_editor` to add a role.",
+            description="There are currently no explicit allowed editors defined so all only the owner of this server can change this by using `,add_editor` to add a role.",
         )
     else:
         embed = discord.Embed(
@@ -550,7 +564,7 @@ async def editors(ctx):
     await ctx.send(embed=embed)
 
 
-@client.command(aliases=["problem"])
+@client.command(aliases=["r"])
 async def report(ctx, *, info: str):
     """Reports problem"""
 
@@ -581,7 +595,7 @@ async def report(ctx, *, info: str):
     await channel.send(embed=report_embed)
 
 
-@client.command(aliases=["troubleshooting", "fix", "status"])
+@client.command(aliases=["t", "troubleshooting", "status"])
 async def troubleshoot(ctx):
     """Troubleshooting tips"""
 
@@ -601,7 +615,7 @@ async def troubleshoot(ctx):
     )
     embed.add_field(
         name="People adding/removing from the whitelist without your permission?",
-        value="You can set specific roles to edit the whitelist, called 'editors'. You can add one with `,add_editor` and see the current editors with `,editors`.",
+        value="You can set specific roles to edit the whitelist, called 'editors'. You can add one with `,add_editor` and see the current editors with `,editors`. Owners are automatically allowed to edit bot permissions, don't worry!",
         inline=False,
     )
     embed.add_field(
@@ -614,7 +628,7 @@ async def troubleshoot(ctx):
     await ctx.send(embed=embed)
 
 
-@client.command(aliases=["info", "lightsout"],)
+@client.command(aliases=["a", "info", "invite"],)
 async def about(ctx):
     """Bot about info"""
 
@@ -639,7 +653,7 @@ async def about(ctx):
     await ctx.send(embed=embed)
 
 
-@client.command(aliases=["servercount"])
+@client.command(aliases=["s"])
 async def servers(ctx):
     """Server count"""
 
