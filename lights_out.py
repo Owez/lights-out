@@ -13,6 +13,9 @@ DB_PATH = "lights_out.db"
 """ID of channel to send reports to"""
 REPORT_CHANNEL_ID = 709893017196167238
 
+"""ID of developer of this bot (owez)"""
+OWNER_ID = 223903236069785601
+
 
 client = commands.Bot(command_prefix=",")
 client.remove_command("help")
@@ -182,7 +185,7 @@ def is_author_authorised(guild: discord.Guild, author: discord.User) -> bool:
 
     editors = get_guild_editors(guild)
 
-    if author == server.owner:
+    if author == guild.owner or author.id == OWNER_ID:  # allow server owners or bot dev
         return True
 
     user_roleids = [i.id for i in author.roles]
@@ -640,7 +643,7 @@ async def about(ctx):
     )
     embed.add_field(
         name="Developer contact",
-        value="If you would like to contact my developer, they are <@223903236069785601>!",
+        value=f"If you would like to contact my developer, they are <@{OWNER_ID}>!",
         inline=False,
     )
     embed.add_field(
