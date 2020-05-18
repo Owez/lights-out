@@ -311,6 +311,7 @@ async def on_member_update(before, after):
             embed.color = 0x00FF00
 
             channel = get_lightsout_channel(after.guild)
+            print(f"<@{after.id}>")
             await channel.send(embed=embed)
         elif got_status == "offline":
             embed = discord.Embed(
