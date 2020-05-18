@@ -292,7 +292,11 @@ async def on_guild_leave(guild):
 async def on_member_update(before, after):
     """Main outage checker"""
 
-    if not after.bot or after.id not in get_guild_bots(after.guild):
+    guild_bots = get_guild_bots(after.guild)
+
+    if not after.bot:
+        return
+    elif len(guild_bots) > 0 and after.id not in guild_bots:
         return
 
     if before.status != after.status:
