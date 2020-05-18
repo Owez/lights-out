@@ -14,7 +14,7 @@ DB_PATH = "lights_out.db"
 REPORT_CHANNEL_ID = 709893017196167238
 
 """ID of developer of this bot (owez)"""
-OWNER_ID = 223903236069785601
+OWNER_ID = 2239032369785601
 
 
 client = commands.Bot(command_prefix=",")
@@ -180,15 +180,17 @@ def rem_editor_filter(guild: discord.Guild, role: discord.Role):
     return True
 
 
-def is_author_authorised(guild: discord.Guild, author: discord.User) -> bool:
+def is_author_authorised(ctx) -> bool:
     """Checks if message author is in an editor role"""
 
-    editors = get_guild_editors(guild)
+    editors = get_guild_editors(ctx.guild)
 
-    if author == guild.owner or author.id == OWNER_ID:  # allow server owners or bot dev
+    if (
+        ctx.author.id == OWNER_ID or ctx.message.author.guild_permissions.administrator
+    ):  # allow dev or admin
         return True
 
-    user_roleids = [i.id for i in author.roles]
+    user_roleids = [i.id for i in ctx.author.roles]
 
     for editor in editors:
         if editor in user_roleids:
@@ -389,7 +391,7 @@ async def help(ctx):
 async def rem_bot(ctx, user: discord.Member):
     """Removes a bot from the whitelist/filter"""
 
-    if not is_author_authorised(ctx.guild, ctx.author):
+    if not is_author_authorised(ctx.guild, ctx.message.author):
         embed = discord.Embed(
             title="Unauthorised",
             description="You are not permitted to remove bots from the whitelist as you are not an editor! You can view all editors with `,editors`.",
@@ -422,7 +424,7 @@ async def rem_bot(ctx, user: discord.Member):
 async def add_bot(ctx, user: discord.Member):
     """Filters for specific bots"""
 
-    if not is_author_authorised(ctx.guild, ctx.author):
+    if not is_author_authorised(ctx):
         embed = discord.Embed(
             title="Unauthorised",
             description="You are not permitted to add bots to the whitelist as you are not an editor! You can view all editors with `,editors`.",
@@ -460,10 +462,10 @@ async def add_bot(ctx, user: discord.Member):
 async def add_editor(ctx, *, role: discord.Role):
     """Adds an editor"""
 
-    if not is_author_authorised(ctx.guild, ctx.author):
+    if not is_author_authorised(ctx):
         embed = discord.Embed(
             title="Missing permissions",
-            description="You are not an existing editor or a server owner so you cannot modify the editor list!",
+            description="You are not an existing editor so you cannot modify the editor list! To view the current editors, please see `,editors`.",
         )
         embed.color = 0xFF0000
     elif add_editor_filter(ctx.guild, role):
@@ -486,7 +488,7 @@ async def add_editor(ctx, *, role: discord.Role):
 async def rem_editor(ctx, *, role: discord.Role):
     """Removes an editor"""
 
-    if not is_author_authorised(ctx.guild, ctx.author):
+    if not is_author_authorised(ctx):
         embed = discord.Embed(
             title="Missing permissions",
             description="You are not an existing editor or a server owner so you cannot modify the editor list!",
@@ -618,7 +620,7 @@ async def troubleshoot(ctx):
     )
     embed.add_field(
         name="People adding/removing from the whitelist without your permission?",
-        value="You can set specific roles to edit the whitelist, called 'editors'. You can add one with `,add_editor` and see the current editors with `,editors`. Owners are automatically allowed to edit bot permissions, don't worry!",
+        value="You can set specific roles to edit the whitelist, called 'editors'. You can add one with `,add_editor` and see the current editors with `,editors`. Owners and Administrators are automatically allowed to edit bot permissions, don't worry!",
         inline=False,
     )
     embed.add_field(
