@@ -395,7 +395,7 @@ async def help(ctx):
 async def rem_bot(ctx, user: discord.Member):
     """Removes a bot from the whitelist/filter"""
 
-    if not is_author_authorised(ctx.guild, ctx.message.author):
+    if not is_author_authorised(ctx):
         embed = discord.Embed(
             title="Unauthorised",
             description="You are not permitted to remove bots from the whitelist as you are not an editor! You can view all editors with `,editors`.",
