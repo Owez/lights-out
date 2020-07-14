@@ -53,7 +53,7 @@ async def set_discordrp():
     await client.change_presence(
         activity=discord.Activity(
             type=discord.ActivityType.watching,
-            name=f"{len(client.guilds)} servers. Do ,help",
+            name=f"{len(list(client.get_all_members()))} members. Do ,help",
         )
     )
 
