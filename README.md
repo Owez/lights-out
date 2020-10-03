@@ -1,10 +1,10 @@
-# LightsOut/`lights_out`
+# LightsOut
 
-LightsOut is a discord bot that monitors other bots outages and general discord outages. It is designed to be customisable and no-nonsense.
+A downtime reporting discord bot for other discord bots. It is designed to be customisable and no-nonsense.
 
 ## Running
 
-Install `discord.py` with pip on python 3.6 or above and run:
+Install `discord.py` using pip on Python 3.6 or above and run:
 
 ```python
 python3 lights_out.py
